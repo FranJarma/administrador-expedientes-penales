@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { AudienciasTab } from "@/components/expedientes/tabs/audiencias-tab";
 import { ChecklistTab } from "@/components/expedientes/tabs/checklist-tab";
 import { GeneralTab } from "@/components/expedientes/tabs/general-tab";
 import { PartesTab } from "@/components/expedientes/tabs/partes-tab";
@@ -9,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireUserId } from "@/lib/auth/session";
 import { feriadosASet } from "@/lib/business/dias-habiles";
 import { calcularEstadoSemaforo } from "@/lib/business/semaforo";
+import { listarAudienciasPorExpediente } from "@/lib/db/queries/audiencias";
 import { obtenerExpediente } from "@/lib/db/queries/expedientes";
 import { listarFeriados } from "@/lib/db/queries/feriados";
 import { listarPartesPorExpediente } from "@/lib/db/queries/partes";
@@ -27,11 +29,12 @@ export default async function ExpedienteDetallePage({
   const expediente = await obtenerExpediente(userId, id);
   if (!expediente) notFound();
 
-  const [personas, partes, plazosRaw, tareas, feriados] = await Promise.all([
+  const [personas, partes, plazosRaw, tareas, audiencias, feriados] = await Promise.all([
     listarPersonasPorExpediente(userId, id),
     listarPartesPorExpediente(userId, id),
     listarPlazosPorExpediente(userId, id),
     listarTareasPorExpediente(userId, id),
+    listarAudienciasPorExpediente(userId, id),
     listarFeriados(userId),
   ]);
 
@@ -59,6 +62,7 @@ export default async function ExpedienteDetallePage({
           <TabsTrigger value="personas">Personas</TabsTrigger>
           <TabsTrigger value="partes">Partes</TabsTrigger>
           <TabsTrigger value="plazos">Plazos</TabsTrigger>
+          <TabsTrigger value="audiencias">Audiencias</TabsTrigger>
           <TabsTrigger value="checklist">Checklist</TabsTrigger>
         </TabsList>
 
@@ -73,6 +77,9 @@ export default async function ExpedienteDetallePage({
         </TabsContent>
         <TabsContent value="plazos">
           <PlazosTab expedienteId={id} personas={personas} plazos={plazos} />
+        </TabsContent>
+        <TabsContent value="audiencias">
+          <AudienciasTab expedienteId={id} audiencias={audiencias} />
         </TabsContent>
         <TabsContent value="checklist">
           <ChecklistTab expedienteId={id} personas={personas} tareas={tareas} />

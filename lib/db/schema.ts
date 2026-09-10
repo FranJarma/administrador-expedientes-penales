@@ -6,6 +6,7 @@ import {
   pgEnum,
   pgTable,
   text,
+  time,
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -138,6 +139,21 @@ export const tareas = pgTable("tareas", {
   estado: estadoTareaEnum("estado").notNull().default("Pendiente"),
 });
 
+export const audiencias = pgTable("audiencias", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expedienteId: uuid("expediente_id")
+    .notNull()
+    .references(() => expedientes.id, { onDelete: "cascade" }),
+  fecha: date("fecha").notNull(),
+  hora: time("hora"),
+  tipo: text("tipo").notNull(),
+  lugar: text("lugar"),
+  observaciones: text("observaciones"),
+});
+
 export const feriados = pgTable("feriados", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
@@ -172,6 +188,7 @@ export const expedientesRelations = relations(expedientes, ({ one, many }) => ({
   partes: many(partes),
   plazos: many(plazos),
   tareas: many(tareas),
+  audiencias: many(audiencias),
 }));
 
 export const personasRelations = relations(personas, ({ one, many }) => ({
@@ -212,6 +229,13 @@ export const tareasRelations = relations(tareas, ({ one }) => ({
   }),
 }));
 
+export const audienciasRelations = relations(audiencias, ({ one }) => ({
+  expediente: one(expedientes, {
+    fields: [audiencias.expedienteId],
+    references: [expedientes.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Invitacion = typeof invitaciones.$inferSelect;
@@ -225,6 +249,8 @@ export type Plazo = typeof plazos.$inferSelect;
 export type NewPlazo = typeof plazos.$inferInsert;
 export type Tarea = typeof tareas.$inferSelect;
 export type NewTarea = typeof tareas.$inferInsert;
+export type Audiencia = typeof audiencias.$inferSelect;
+export type NewAudiencia = typeof audiencias.$inferInsert;
 export type Feriado = typeof feriados.$inferSelect;
 export type NewFeriado = typeof feriados.$inferInsert;
 export type ConfiguracionNotificaciones = typeof configuracionNotificaciones.$inferSelect;

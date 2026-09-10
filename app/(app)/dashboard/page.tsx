@@ -3,7 +3,6 @@ import { contarPorCategoria, enriquecerPlazos } from "@/lib/business/plazos-view
 import { feriadosASet } from "@/lib/business/dias-habiles";
 import { listarExpedientes } from "@/lib/db/queries/expedientes";
 import { listarFeriados } from "@/lib/db/queries/feriados";
-import { contarPersonasDetenidas } from "@/lib/db/queries/personas";
 import { listarPlazosConDetalle } from "@/lib/db/queries/plazos";
 import { listarTareasConDetalle } from "@/lib/db/queries/tareas";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -11,12 +10,11 @@ import { StatCard } from "@/components/dashboard/stat-card";
 export default async function DashboardPage() {
   const userId = await requireUserId();
 
-  const [expedientes, plazosRaw, tareas, feriados, personasDetenidas] = await Promise.all([
+  const [expedientes, plazosRaw, tareas, feriados] = await Promise.all([
     listarExpedientes(userId),
     listarPlazosConDetalle(userId),
     listarTareasConDetalle(userId),
     listarFeriados(userId),
-    contarPersonasDetenidas(userId),
   ]);
 
   const feriadosSet = feriadosASet(feriados);
@@ -24,6 +22,17 @@ export default async function DashboardPage() {
 
   const procesales = contarPorCategoria(plazos, "procesal");
   const preventivas = contarPorCategoria(plazos, "prision_preventiva");
+
+  // Solo cuenta personas detenidas que tienen un plazo de prisión
+  // preventiva activo (no cumplido) vinculado, para no mezclarlas con
+  // detenidos sin ningún vencimiento de preventiva registrado.
+  const personasConPreventivaActiva = new Set(
+    plazos
+      .filter(
+        (p) => p.plazo.categoria === "prision_preventiva" && !p.plazo.cumplido && p.persona
+      )
+      .map((p) => p.persona!.id)
+  ).size;
 
   const expedientesInactivos: string[] = ["Resuelto", "Archivado"];
   const expedientesActivos = expedientes.filter(
@@ -101,7 +110,12 @@ export default async function DashboardPage() {
             value={preventivas.vencidos}
             href="/plazos?categoria=prision_preventiva&estado=vencido"
           />
-          <StatCard variant="danger" label="Personas detenidas" value={personasDetenidas} href="/expedientes" />
+          <StatCard
+            variant="danger"
+            label="Personas detenidas"
+            value={personasConPreventivaActiva}
+            href="/plazos?categoria=prision_preventiva&estado=activos"
+          />
         </div>
       </section>
     </div>

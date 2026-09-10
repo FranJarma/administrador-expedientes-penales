@@ -27,10 +27,3 @@ export async function obtenerExpedientesConDetenidos(userId: string): Promise<Se
   return new Set(rows.map((r) => r.expedienteId));
 }
 
-export async function contarPersonasDetenidas(userId: string): Promise<number> {
-  const rows = await db
-    .select({ id: personas.id })
-    .from(personas)
-    .where(and(eq(personas.userId, userId), eq(personas.situacion, "Detenido")));
-  return rows.length;
-}
