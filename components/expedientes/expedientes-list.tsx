@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -29,9 +30,23 @@ import {
 import { ESTADOS_EXPEDIENTE } from "@/lib/constants";
 import type { Expediente } from "@/lib/db/schema";
 
-export function ExpedientesList({ expedientes }: { expedientes: Expediente[] }) {
+type FiltroCondicion = "todas" | "con_detenido" | "sin_detenido";
+
+export function ExpedientesList({
+  expedientes,
+  expedientesConDetenidos,
+}: {
+  expedientes: Expediente[];
+  expedientesConDetenidos: string[];
+}) {
+  const detenidosSet = useMemo(
+    () => new Set(expedientesConDetenidos),
+    [expedientesConDetenidos]
+  );
+
   const [busqueda, setBusqueda] = useState("");
   const [estado, setEstado] = useState<string>("todos");
+  const [condicion, setCondicion] = useState<FiltroCondicion>("todas");
 
   const filtrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
@@ -42,12 +57,25 @@ export function ExpedientesList({ expedientes }: { expedientes: Expediente[] }) 
         e.caratula.toLowerCase().includes(texto) ||
         e.responsable.toLowerCase().includes(texto);
       const coincideEstado = estado === "todos" || e.estado === estado;
-      return coincideTexto && coincideEstado;
+      const tieneDetenido = detenidosSet.has(e.id);
+      const coincideCondicion =
+        condicion === "todas" ||
+        (condicion === "con_detenido" && tieneDetenido) ||
+        (condicion === "sin_detenido" && !tieneDetenido);
+      return coincideTexto && coincideEstado && coincideCondicion;
     });
-  }, [expedientes, busqueda, estado]);
+  }, [expedientes, busqueda, estado, condicion, detenidosSet]);
 
   return (
     <div className="space-y-4">
+      <Tabs value={condicion} onValueChange={(v) => setCondicion(v as FiltroCondicion)}>
+        <TabsList>
+          <TabsTrigger value="todas">Todas</TabsTrigger>
+          <TabsTrigger value="con_detenido">Con preso</TabsTrigger>
+          <TabsTrigger value="sin_detenido">Sin preso</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-2 sm:flex-row">
           <Input
@@ -90,7 +118,7 @@ export function ExpedientesList({ expedientes }: { expedientes: Expediente[] }) 
             <TableRow>
               <TableHead>Número</TableHead>
               <TableHead>Carátula</TableHead>
-              <TableHead>Fuero</TableHead>
+              <TableHead>Condición</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Responsable</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
@@ -115,7 +143,11 @@ export function ExpedientesList({ expedientes }: { expedientes: Expediente[] }) 
                   </Link>
                 </TableCell>
                 <TableCell className="max-w-xs truncate">{expediente.caratula}</TableCell>
-                <TableCell>{expediente.fuero}</TableCell>
+                <TableCell>
+                  <Badge variant={detenidosSet.has(expediente.id) ? "urgente" : "secondary"}>
+                    {detenidosSet.has(expediente.id) ? "Detenido" : "Libre"}
+                  </Badge>
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline">{expediente.estado}</Badge>
                 </TableCell>

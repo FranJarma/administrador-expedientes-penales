@@ -14,41 +14,53 @@ import {
   startOfWeek,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Gavel } from "lucide-react";
 
-import { PlazoChip } from "@/components/calendario/plazo-chip";
+import { EventoChip } from "@/components/calendario/plazo-chip";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatFechaSql } from "@/lib/business/dias-habiles";
 import type { EstadoSemaforo } from "@/lib/business/semaforo";
 import { cn } from "@/lib/utils";
 
-export type PlazoCalendario = {
-  id: string;
-  expedienteId: string;
-  numero: string;
-  tipo: string;
-  fechaVencimiento: string;
-  estado: EstadoSemaforo;
-  tieneDetenido: boolean;
-  cumplido: boolean;
-};
+export type EventoCalendario =
+  | {
+      kind: "plazo";
+      id: string;
+      expedienteId: string;
+      numero: string;
+      tipo: string;
+      fecha: string;
+      estado: EstadoSemaforo;
+      tieneDetenido: boolean;
+      cumplido: boolean;
+    }
+  | {
+      kind: "audiencia";
+      id: string;
+      expedienteId: string;
+      numero: string;
+      tipo: string;
+      fecha: string;
+      hora: string | null;
+      tieneDetenido: boolean;
+    };
 
 type Vista = "mes" | "semana" | "dia";
 
-export function CalendarioView({ plazos }: { plazos: PlazoCalendario[] }) {
+export function CalendarioView({ eventos }: { eventos: EventoCalendario[] }) {
   const [vista, setVista] = useState<Vista>("mes");
   const [referencia, setReferencia] = useState(() => new Date());
 
   const porFecha = useMemo(() => {
-    const map = new Map<string, PlazoCalendario[]>();
-    for (const p of plazos) {
-      const arr = map.get(p.fechaVencimiento) ?? [];
-      arr.push(p);
-      map.set(p.fechaVencimiento, arr);
+    const map = new Map<string, EventoCalendario[]>();
+    for (const ev of eventos) {
+      const arr = map.get(ev.fecha) ?? [];
+      arr.push(ev);
+      map.set(ev.fecha, arr);
     }
     return map;
-  }, [plazos]);
+  }, [eventos]);
 
   function irAnterior() {
     if (vista === "mes") setReferencia((d) => addMonths(d, -1));
@@ -134,6 +146,10 @@ export function CalendarioView({ plazos }: { plazos: PlazoCalendario[] }) {
           <span className="size-2 rounded-full bg-success" />
           Lejano
         </span>
+        <span className="flex items-center gap-1.5">
+          <Gavel className="size-3" />
+          Audiencia
+        </span>
       </div>
 
       <div
@@ -150,7 +166,7 @@ export function CalendarioView({ plazos }: { plazos: PlazoCalendario[] }) {
           ))}
         {dias.map((dia) => {
           const key = formatFechaSql(dia);
-          const eventos = porFecha.get(key) ?? [];
+          const eventosDelDia = porFecha.get(key) ?? [];
           const esHoy = isSameDay(dia, new Date());
           const fueraDeMes = vista === "mes" && !isSameMonth(dia, referencia);
           return (
@@ -171,17 +187,30 @@ export function CalendarioView({ plazos }: { plazos: PlazoCalendario[] }) {
                 {format(dia, vista === "dia" ? "d 'de' MMMM" : "d", { locale: es })}
               </p>
               <div className="space-y-1">
-                {eventos.map((ev) => (
-                  <PlazoChip
-                    key={ev.id}
-                    expedienteId={ev.expedienteId}
-                    numero={ev.numero}
-                    tipo={ev.tipo}
-                    estado={ev.estado}
-                    tieneDetenido={ev.tieneDetenido}
-                    cumplido={ev.cumplido}
-                  />
-                ))}
+                {eventosDelDia.map((ev) =>
+                  ev.kind === "plazo" ? (
+                    <EventoChip
+                      key={ev.id}
+                      kind="plazo"
+                      expedienteId={ev.expedienteId}
+                      numero={ev.numero}
+                      tipo={ev.tipo}
+                      estado={ev.estado}
+                      tieneDetenido={ev.tieneDetenido}
+                      cumplido={ev.cumplido}
+                    />
+                  ) : (
+                    <EventoChip
+                      key={ev.id}
+                      kind="audiencia"
+                      expedienteId={ev.expedienteId}
+                      numero={ev.numero}
+                      tipo={ev.tipo}
+                      hora={ev.hora}
+                      tieneDetenido={ev.tieneDetenido}
+                    />
+                  )
+                )}
               </div>
             </div>
           );

@@ -22,12 +22,7 @@ export const LUGARES_DETENCION = [
   "Otro",
 ] as const;
 
-export const ROLES_PARTE = [
-  "Fiscalía",
-  "Querella",
-  "Actor civil",
-  "Demandado civil",
-] as const;
+export const ROLES_PARTE = ["Fiscalía", "Querella", "Defensa"] as const;
 
 export const CATEGORIAS_PLAZO = ["procesal", "prision_preventiva"] as const;
 
