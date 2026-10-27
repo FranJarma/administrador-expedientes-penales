@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ESTADOS_EXPEDIENTE } from "@/lib/constants";
+import { ESTADOS_EXPEDIENTE, TIPOS_EXPEDIENTE } from "@/lib/constants";
 import type { Expediente } from "@/lib/db/schema";
 
 type FiltroCondicion = "todas" | "con_detenido" | "sin_detenido";
@@ -46,6 +46,7 @@ export function ExpedientesList({
 
   const [busqueda, setBusqueda] = useState("");
   const [estado, setEstado] = useState<string>("todos");
+  const [tipo, setTipo] = useState<string>("todos");
   const [condicion, setCondicion] = useState<FiltroCondicion>("todas");
 
   const filtrados = useMemo(() => {
@@ -57,14 +58,16 @@ export function ExpedientesList({
         e.caratula.toLowerCase().includes(texto) ||
         e.responsable.toLowerCase().includes(texto);
       const coincideEstado = estado === "todos" || e.estado === estado;
+      const coincideTipo =
+        tipo === "todos" || (tipo === "sin_tipo" ? e.tipo === null : e.tipo === tipo);
       const tieneDetenido = detenidosSet.has(e.id);
       const coincideCondicion =
         condicion === "todas" ||
         (condicion === "con_detenido" && tieneDetenido) ||
         (condicion === "sin_detenido" && !tieneDetenido);
-      return coincideTexto && coincideEstado && coincideCondicion;
+      return coincideTexto && coincideEstado && coincideTipo && coincideCondicion;
     });
-  }, [expedientes, busqueda, estado, condicion, detenidosSet]);
+  }, [expedientes, busqueda, estado, tipo, condicion, detenidosSet]);
 
   return (
     <div className="space-y-4">
@@ -97,6 +100,20 @@ export function ExpedientesList({
               ))}
             </SelectContent>
           </Select>
+          <Select value={tipo} onValueChange={setTipo}>
+            <SelectTrigger className="sm:w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos los tipos</SelectItem>
+              {TIPOS_EXPEDIENTE.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+              <SelectItem value="sin_tipo">Sin tipo</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <FormDialog
@@ -107,6 +124,7 @@ export function ExpedientesList({
             </Button>
           }
           title="Nuevo expediente"
+          className="sm:max-w-2xl"
         >
           {(close) => <ExpedienteForm onSuccess={close} />}
         </FormDialog>
@@ -118,6 +136,7 @@ export function ExpedientesList({
             <TableRow>
               <TableHead>Número</TableHead>
               <TableHead>Carátula</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Condición</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Responsable</TableHead>
@@ -127,7 +146,7 @@ export function ExpedientesList({
           <TableBody>
             {filtrados.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
                   No se encontraron expedientes.
                 </TableCell>
               </TableRow>
@@ -143,6 +162,9 @@ export function ExpedientesList({
                   </Link>
                 </TableCell>
                 <TableCell className="max-w-xs truncate">{expediente.caratula}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  {expediente.tipo ?? "—"}
+                </TableCell>
                 <TableCell>
                   <Badge variant={detenidosSet.has(expediente.id) ? "urgente" : "secondary"}>
                     {detenidosSet.has(expediente.id) ? "Detenido" : "Libre"}
@@ -162,6 +184,7 @@ export function ExpedientesList({
                         </Button>
                       }
                       title="Editar expediente"
+                      className="sm:max-w-2xl"
                     >
                       {(close) => (
                         <ExpedienteForm expediente={expediente} onSuccess={close} />

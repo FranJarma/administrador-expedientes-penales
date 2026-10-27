@@ -11,6 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Persona } from "@/lib/db/schema";
 
+const SITUACION_BADGE: Record<Persona["situacion"], "urgente" | "warning" | "secondary"> = {
+  Detenido: "urgente",
+  Rebelde: "warning",
+  Libre: "secondary",
+};
+
 export function PersonasTab({
   expedienteId,
   personas,
@@ -18,9 +24,27 @@ export function PersonasTab({
   expedienteId: string;
   personas: Persona[];
 }) {
+  // Imputados primero, después víctimas (se mantiene el orden de carga).
+  const ordenadas = [...personas].sort(
+    (a, b) => Number(a.rol === "Víctima") - Number(b.rol === "Víctima")
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <FormDialog
+          trigger={
+            <Button size="sm" variant="outline">
+              <Plus />
+              Agregar víctima
+            </Button>
+          }
+          title="Agregar víctima"
+        >
+          {(close) => (
+            <PersonaForm expedienteId={expedienteId} rolInicial="Víctima" onSuccess={close} />
+          )}
+        </FormDialog>
         <FormDialog
           trigger={
             <Button size="sm">
@@ -41,18 +65,25 @@ export function PersonasTab({
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {personas.map((persona) => (
+        {ordenadas.map((persona) => (
           <Card key={persona.id}>
             <CardContent className="space-y-2 px-4 py-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-medium">{persona.nombre}</p>
-                  <div className="mt-1 flex gap-1.5">
-                    <Badge variant={persona.situacion === "Detenido" ? "urgente" : "secondary"}>
-                      {persona.situacion}
-                    </Badge>
-                    {persona.lugarDetencion && (
-                      <Badge variant="outline">{persona.lugarDetencion}</Badge>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {persona.rol === "Víctima" ? (
+                      <Badge variant="warning">Víctima</Badge>
+                    ) : (
+                      <>
+                        <Badge variant="outline">Imputado</Badge>
+                        <Badge variant={SITUACION_BADGE[persona.situacion]}>
+                          {persona.situacion}
+                        </Badge>
+                        {persona.lugarDetencion && (
+                          <Badge variant="outline">{persona.lugarDetencion}</Badge>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -82,10 +113,14 @@ export function PersonasTab({
                 </div>
               </div>
               {persona.defensor && (
-                <p className="text-sm text-muted-foreground">Defensor: {persona.defensor}</p>
+                <p className="text-sm text-muted-foreground">
+                  {persona.rol === "Víctima" ? "Representante" : "Defensor"}: {persona.defensor}
+                </p>
               )}
               {persona.observaciones && (
-                <p className="text-sm text-muted-foreground">{persona.observaciones}</p>
+                <p className="text-sm whitespace-pre-wrap text-muted-foreground">
+                  {persona.observaciones}
+                </p>
               )}
             </CardContent>
           </Card>

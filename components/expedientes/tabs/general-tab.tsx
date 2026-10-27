@@ -30,6 +30,7 @@ export function GeneralTab({ expediente }: { expediente: Expediente }) {
             </Button>
           }
           title="Editar expediente"
+          className="sm:max-w-2xl"
         >
           {(close) => <ExpedienteForm expediente={expediente} onSuccess={close} />}
         </FormDialog>
@@ -37,14 +38,19 @@ export function GeneralTab({ expediente }: { expediente: Expediente }) {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Campo label="Número" value={expediente.numero} />
-        <Campo label="Fuero" value={expediente.fuero} />
         <Campo label="Estado" value={<Badge variant="outline">{expediente.estado}</Badge>} />
+        <Campo label="Tipo" value={expediente.tipo} />
         <Campo label="Responsable" value={expediente.responsable} />
         <Campo label="Fecha de inicio" value={expediente.fechaInicio} />
       </div>
 
       <Campo label="Carátula" value={expediente.caratula} />
-      <Campo label="Observaciones" value={expediente.observaciones} />
+      <div>
+        <p className="text-xs text-muted-foreground">Observaciones</p>
+        <p className="text-sm whitespace-pre-wrap [tab-size:4]">
+          {expediente.observaciones || "—"}
+        </p>
+      </div>
     </div>
   );
 }

@@ -14,10 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { TextareaConTab } from "@/components/forms/textarea-con-tab";
 import { useServerAction } from "@/hooks/use-server-action";
-import { ESTADOS_EXPEDIENTE } from "@/lib/constants";
+import { ESTADOS_EXPEDIENTE, TIPOS_EXPEDIENTE } from "@/lib/constants";
 import type { Expediente } from "@/lib/db/schema";
+
+// Radix Select no admite un valor vacío, así que "sin especificar" usa un centinela.
+const SIN_TIPO = "sin_especificar";
 
 export function ExpedienteForm({
   expediente,
@@ -40,8 +43,8 @@ export function ExpedienteForm({
       {
         numero: fd.get("numero"),
         caratula: fd.get("caratula"),
-        fuero: fd.get("fuero"),
         estado: fd.get("estado"),
+        tipo: fd.get("tipo") === SIN_TIPO ? "" : (fd.get("tipo") ?? ""),
         responsable: fd.get("responsable"),
         fechaInicio: fd.get("fechaInicio"),
         observaciones: fd.get("observaciones"),
@@ -56,21 +59,12 @@ export function ExpedienteForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="numero">Número</Label>
-          <Input id="numero" name="numero" defaultValue={expediente?.numero} required />
-          {fieldErrors?.numero && (
-            <p className="text-xs text-destructive">{fieldErrors.numero[0]}</p>
-          )}
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="fuero">Fuero</Label>
-          <Input id="fuero" name="fuero" defaultValue={expediente?.fuero} required />
-          {fieldErrors?.fuero && (
-            <p className="text-xs text-destructive">{fieldErrors.fuero[0]}</p>
-          )}
-        </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="numero">Número</Label>
+        <Input id="numero" name="numero" defaultValue={expediente?.numero} required />
+        {fieldErrors?.numero && (
+          <p className="text-xs text-destructive">{fieldErrors.numero[0]}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -106,28 +100,53 @@ export function ExpedienteForm({
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="fechaInicio">Fecha de inicio</Label>
-        <Input
-          id="fechaInicio"
-          name="fechaInicio"
-          type="date"
-          defaultValue={expediente?.fechaInicio}
-          required
-        />
-        {fieldErrors?.fechaInicio && (
-          <p className="text-xs text-destructive">{fieldErrors.fechaInicio[0]}</p>
-        )}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="tipo">Tipo de expediente</Label>
+          <Select name="tipo" defaultValue={expediente?.tipo ?? SIN_TIPO}>
+            <SelectTrigger id="tipo" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={SIN_TIPO}>Sin especificar</SelectItem>
+              {TIPOS_EXPEDIENTE.map((tipo) => (
+                <SelectItem key={tipo} value={tipo}>
+                  {tipo}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="fechaInicio">Fecha de inicio</Label>
+          <Input
+            id="fechaInicio"
+            name="fechaInicio"
+            type="date"
+            defaultValue={expediente?.fechaInicio}
+            required
+          />
+          {fieldErrors?.fechaInicio && (
+            <p className="text-xs text-destructive">{fieldErrors.fechaInicio[0]}</p>
+          )}
+        </div>
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="observaciones">Observaciones</Label>
-        <Textarea
+        <Label htmlFor="observaciones">Observaciones / síntesis</Label>
+        <TextareaConTab
           id="observaciones"
           name="observaciones"
           defaultValue={expediente?.observaciones ?? ""}
-          rows={3}
+          rows={10}
+          className="min-h-40 resize-y"
         />
+        <p className="text-xs text-muted-foreground">
+          Enter separa párrafos y Tab agrega sangría.
+        </p>
+        {fieldErrors?.observaciones && (
+          <p className="text-xs text-destructive">{fieldErrors.observaciones[0]}</p>
+        )}
       </div>
 
       <Button type="submit" className="w-full" disabled={isPending}>

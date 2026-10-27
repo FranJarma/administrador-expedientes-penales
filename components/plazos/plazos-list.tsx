@@ -6,7 +6,9 @@ import { useMemo, useState } from "react";
 import { eliminarPlazo } from "@/actions/plazos";
 import { DeleteButton } from "@/components/forms/delete-button";
 import { CumplidoToggle } from "@/components/plazos/cumplido-toggle";
-import { SemaforoBadge } from "@/components/plazos/semaforo-badge";
+import { EstadoPlazoBadge } from "@/components/plazos/estado-plazo-badge";
+import { PlazoAcciones } from "@/components/plazos/plazo-acciones";
+import { VencimientoDetalle } from "@/components/plazos/vencimiento-detalle";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +32,9 @@ import type { PlazoEnriquecido } from "@/lib/business/plazos-view";
 const ESTADOS_FILTRO = [
   { value: "todos", label: "Todos los estados" },
   { value: "activos", label: "Activos (no cumplidos)" },
+  { value: "corriendo", label: "Corriendo" },
+  { value: "ampliado", label: "Ampliados" },
+  { value: "suspendido", label: "Suspendidos" },
   { value: "vencenHoy", label: "Vencen hoy" },
   { value: "vencido", label: "Vencidos" },
   { value: "urgente", label: "Urgentes (≤3 hábiles)" },
@@ -59,6 +64,7 @@ export function PlazosList({
         estado === "todos" ||
         (estado === "vencenHoy" && item.vencimientoHoy) ||
         (estado === "activos" && !item.plazo.cumplido) ||
+        ((estado === "corriendo" || estado === "ampliado") && item.estadoPlazo === estado) ||
         item.estado === estado;
       const coincideTexto =
         !texto ||
@@ -143,13 +149,16 @@ export function PlazosList({
                 </TableCell>
                 <TableCell>{item.plazo.tipo}</TableCell>
                 <TableCell>{item.persona?.nombre ?? "—"}</TableCell>
-                <TableCell>{item.plazo.fechaVencimiento}</TableCell>
                 <TableCell>
-                  <SemaforoBadge estado={item.estado} />
+                  <VencimientoDetalle plazo={item.plazo} />
+                </TableCell>
+                <TableCell>
+                  <EstadoPlazoBadge estado={item.estado} ampliaciones={item.plazo.ampliaciones} />
                 </TableCell>
                 <TableCell>{item.plazo.responsable}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
+                    <PlazoAcciones plazo={item.plazo} />
                     <CumplidoToggle id={item.plazo.id} cumplido={item.plazo.cumplido} />
                     <DeleteButton
                       action={() => eliminarPlazo(item.plazo.id)}

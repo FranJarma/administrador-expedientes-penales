@@ -52,6 +52,70 @@ export function contarDiasHabilesEntre(
   return count;
 }
 
+/**
+ * Devuelve el día hábil número `cantidad` contado estrictamente después de
+ * `desde` (es decir, `desde` no se cuenta). Ej: desde un viernes, 1 hábil es
+ * el lunes siguiente (si no es feriado).
+ */
+export function sumarDiasHabiles(desde: Date, cantidad: number, feriados: Set<string>): Date {
+  let cursor = startOfDay(desde);
+  let restantes = cantidad;
+  while (restantes > 0) {
+    cursor = addDays(cursor, 1);
+    if (esDiaHabil(cursor, feriados)) restantes--;
+  }
+  return cursor;
+}
+
+/**
+ * Días hábiles que le quedan a un plazo al suspenderlo. El día de la
+ * suspensión ya no corre, así que se cuentan los hábiles desde esa fecha
+ * (inclusive) hasta el vencimiento (inclusive).
+ */
+export function diasHabilesRestantesAlSuspender(
+  fechaSuspension: Date,
+  vencimiento: Date,
+  feriados: Set<string>
+): number {
+  return contarDiasHabilesEntre(addDays(startOfDay(fechaSuspension), -1), vencimiento, feriados);
+}
+
+/**
+ * Nuevo vencimiento al reanudar un plazo suspendido. El día de la
+ * reanudación vuelve a correr, así que es el primer hábil que se cuenta.
+ * Los días entre la suspensión y la reanudación no se computan.
+ */
+export function vencimientoAlReanudar(
+  fechaReanudacion: Date,
+  diasHabilesRestantes: number,
+  feriados: Set<string>
+): Date {
+  return sumarDiasHabiles(addDays(startOfDay(fechaReanudacion), -1), diasHabilesRestantes, feriados);
+}
+
+/**
+ * Fechas a cargar como feriado para un rango (ej. la feria judicial): cada
+ * día de lunes a viernes entre `desde` y `hasta` inclusive, salvo las que ya
+ * estaban cargadas. Si es un solo día se carga aunque caiga en fin de semana.
+ */
+export function fechasParaCargarFeriados(
+  desde: Date,
+  hasta: Date,
+  yaCargadas: Set<string>
+): string[] {
+  const inicio = startOfDay(desde);
+  const fin = startOfDay(hasta);
+  const esRango = isAfter(fin, inicio);
+  const fechas: string[] = [];
+  for (let dia = inicio; !isAfter(dia, fin); dia = addDays(dia, 1)) {
+    const fecha = formatFechaSql(dia);
+    if (esRango && esFinDeSemana(dia)) continue;
+    if (yaCargadas.has(fecha)) continue;
+    fechas.push(fecha);
+  }
+  return fechas;
+}
+
 export function feriadosASet(feriados: { fecha: string }[]): Set<string> {
   return new Set(feriados.map((f) => f.fecha));
 }

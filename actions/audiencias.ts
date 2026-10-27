@@ -29,11 +29,14 @@ export async function crearAudiencia(
     .values({
       userId,
       expedienteId: parsed.data.expedienteId,
+      clase: parsed.data.clase,
       fecha: parsed.data.fecha,
       hora: parsed.data.hora || null,
       tipo: parsed.data.tipo,
       lugar: parsed.data.lugar || null,
       observaciones: parsed.data.observaciones || null,
+      resultado: parsed.data.resultado || null,
+      resultadoDetalle: parsed.data.resultadoDetalle || null,
     })
     .returning({ id: audiencias.id });
 
@@ -59,11 +62,14 @@ export async function actualizarAudiencia(id: string, input: unknown): Promise<A
   await db
     .update(audiencias)
     .set({
+      clase: parsed.data.clase,
       fecha: parsed.data.fecha,
       hora: parsed.data.hora || null,
       tipo: parsed.data.tipo,
       lugar: parsed.data.lugar || null,
       observaciones: parsed.data.observaciones || null,
+      resultado: parsed.data.resultado || null,
+      resultadoDetalle: parsed.data.resultadoDetalle || null,
     })
     .where(and(eq(audiencias.id, id), eq(audiencias.userId, userId)));
 

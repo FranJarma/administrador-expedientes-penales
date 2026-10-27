@@ -119,6 +119,34 @@ Abrí [http://localhost:3000](http://localhost:3000). Te va a redirigir a
 /scripts/seed.ts                    Seed de usuario admin + feriados
 ```
 
+## Plazos: ampliación, suspensión y estados
+
+- **Ampliar (+10 días):** suma 10 días hábiles al vencimiento actual,
+  salteando fines de semana y los feriados cargados. Se guarda el vencimiento
+  original y cuántas ampliaciones tuvo.
+- **Suspender / Reanudar:** al suspender se guardan los días hábiles que
+  restaban (contando el día de la suspensión). Al reanudar, el nuevo
+  vencimiento es el día hábil número N contando desde la fecha de
+  reanudación. Los días entre ambas fechas no se computan.
+- **Estados:** corriendo, ampliado, suspendido, vencido y cumplido. El color
+  sigue el semáforo de urgencia. Los plazos suspendidos no generan alertas ni
+  aparecen en el calendario.
+- **Feria judicial:** en **Feriados** se puede cargar un rango con "Hasta";
+  se agrega cada día de lunes a viernes del rango.
+
+## Actualizar una base existente sin perder datos
+
+Las migraciones solo **agregan** columnas, tipos y opciones; no borran ni
+renombran nada. El código anterior sigue funcionando con la base migrada, así
+que el orden seguro es:
+
+1. Backup de la base (en Neon: crear un branch o restore point).
+2. `npm run db:migrate` contra la `DATABASE_URL` de producción.
+3. Recién después, publicar el código nuevo (merge a `main`).
+
+Si se publica el código antes de migrar, la app falla al leer columnas que
+todavía no existen (no se pierden datos, pero queda caída hasta migrar).
+
 ## Notas
 
 - Los feriados 2026 precargados están tomados de fuentes públicas; conviene

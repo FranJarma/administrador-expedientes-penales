@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { SemaforoBadge } from "@/components/plazos/semaforo-badge";
+import { EstadoPlazoBadge } from "@/components/plazos/estado-plazo-badge";
 import { NotificacionesForm } from "@/components/notificaciones/notificaciones-form";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -88,7 +88,7 @@ export default async function NotificacionesPage() {
                 <TableCell>{item.plazo.tipo}</TableCell>
                 <TableCell>{item.plazo.fechaVencimiento}</TableCell>
                 <TableCell>
-                  <SemaforoBadge estado={item.estado} />
+                  <EstadoPlazoBadge estado={item.estado} ampliaciones={item.plazo.ampliaciones} />
                 </TableCell>
               </TableRow>
             ))}

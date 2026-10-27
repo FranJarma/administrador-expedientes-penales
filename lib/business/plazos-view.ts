@@ -1,9 +1,15 @@
 import { contarDiasHabilesEntre, formatFechaSql, parseFechaSql } from "./dias-habiles";
-import { calcularEstadoSemaforo, type EstadoSemaforo } from "./semaforo";
+import {
+  calcularEstadoPlazo,
+  semaforoDePlazo,
+  type EstadoPlazo,
+  type EstadoSemaforo,
+} from "./semaforo";
 import type { PlazoConDetalle } from "@/lib/db/queries/plazos";
 
 export type PlazoEnriquecido = PlazoConDetalle & {
   estado: EstadoSemaforo;
+  estadoPlazo: EstadoPlazo;
   vencimientoHoy: boolean;
   diasHabilesRestantes: number | null;
 };
@@ -15,20 +21,16 @@ export function enriquecerPlazos(
 ): PlazoEnriquecido[] {
   const hoyStr = formatFechaSql(hoy);
   return plazos.map((item) => {
-    const estado = calcularEstadoSemaforo({
-      fechaVencimiento: item.plazo.fechaVencimiento,
-      cumplido: item.plazo.cumplido,
-      feriados,
-      hoy,
-    });
-    const diasHabilesRestantes =
-      estado === "vencido" || estado === "cumplido"
-        ? null
-        : contarDiasHabilesEntre(hoy, parseFechaSql(item.plazo.fechaVencimiento), feriados);
+    const estado = semaforoDePlazo(item.plazo, feriados, hoy);
+    const corre = estado !== "vencido" && estado !== "cumplido" && estado !== "suspendido";
+    const diasHabilesRestantes = corre
+      ? contarDiasHabilesEntre(hoy, parseFechaSql(item.plazo.fechaVencimiento), feriados)
+      : null;
     return {
       ...item,
       estado,
-      vencimientoHoy: !item.plazo.cumplido && item.plazo.fechaVencimiento === hoyStr,
+      estadoPlazo: calcularEstadoPlazo(estado, item.plazo.ampliaciones),
+      vencimientoHoy: corre && item.plazo.fechaVencimiento === hoyStr,
       diasHabilesRestantes,
     };
   });
