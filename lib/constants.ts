@@ -18,6 +18,9 @@ export const ROLES_PERSONA = ["Imputado", "Víctima"] as const;
 
 export const TIPOS_EXPEDIENTE = ["Carpeta judicial", "Expediente físico"] as const;
 
+/** Largo máximo de las observaciones cortas del expediente (se ven en la planilla). */
+export const MAX_NOTA_EXPEDIENTE = 200;
+
 export const LUGARES_DETENCION = [
   "UC1",
   "UC4",

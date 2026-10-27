@@ -56,7 +56,7 @@ export function ExpedientesList({
         !texto ||
         e.numero.toLowerCase().includes(texto) ||
         e.caratula.toLowerCase().includes(texto) ||
-        e.responsable.toLowerCase().includes(texto);
+        (e.nota?.toLowerCase().includes(texto) ?? false);
       const coincideEstado = estado === "todos" || e.estado === estado;
       const coincideTipo =
         tipo === "todos" || (tipo === "sin_tipo" ? e.tipo === null : e.tipo === tipo);
@@ -82,7 +82,7 @@ export function ExpedientesList({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-2 sm:flex-row">
           <Input
-            placeholder="Buscar por número, carátula o responsable..."
+            placeholder="Buscar por número, carátula u observaciones..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             className="sm:max-w-xs"
@@ -139,7 +139,7 @@ export function ExpedientesList({
               <TableHead>Tipo</TableHead>
               <TableHead>Condición</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead>Responsable</TableHead>
+              <TableHead>Observaciones</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -173,7 +173,12 @@ export function ExpedientesList({
                 <TableCell>
                   <Badge variant="outline">{expediente.estado}</Badge>
                 </TableCell>
-                <TableCell>{expediente.responsable}</TableCell>
+                <TableCell
+                  className="max-w-56 truncate text-muted-foreground"
+                  title={expediente.nota ?? undefined}
+                >
+                  {expediente.nota ?? "—"}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <FormDialog

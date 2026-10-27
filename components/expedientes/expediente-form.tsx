@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { TextareaConTab } from "@/components/forms/textarea-con-tab";
 import { useServerAction } from "@/hooks/use-server-action";
-import { ESTADOS_EXPEDIENTE, TIPOS_EXPEDIENTE } from "@/lib/constants";
+import { ESTADOS_EXPEDIENTE, MAX_NOTA_EXPEDIENTE, TIPOS_EXPEDIENTE } from "@/lib/constants";
 import type { Expediente } from "@/lib/db/schema";
 
 // Radix Select no admite un valor vacío, así que "sin especificar" usa un centinela.
@@ -45,8 +45,8 @@ export function ExpedienteForm({
         caratula: fd.get("caratula"),
         estado: fd.get("estado"),
         tipo: fd.get("tipo") === SIN_TIPO ? "" : (fd.get("tipo") ?? ""),
-        responsable: fd.get("responsable"),
         fechaInicio: fd.get("fechaInicio"),
+        nota: fd.get("nota"),
         observaciones: fd.get("observaciones"),
       },
       () => {
@@ -92,16 +92,6 @@ export function ExpedienteForm({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="responsable">Responsable</Label>
-          <Input id="responsable" name="responsable" defaultValue={expediente?.responsable} required />
-          {fieldErrors?.responsable && (
-            <p className="text-xs text-destructive">{fieldErrors.responsable[0]}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
           <Label htmlFor="tipo">Tipo de expediente</Label>
           <Select name="tipo" defaultValue={expediente?.tipo ?? SIN_TIPO}>
             <SelectTrigger id="tipo" className="w-full">
@@ -117,23 +107,39 @@ export function ExpedienteForm({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="fechaInicio">Fecha de inicio</Label>
-          <Input
-            id="fechaInicio"
-            name="fechaInicio"
-            type="date"
-            defaultValue={expediente?.fechaInicio}
-            required
-          />
-          {fieldErrors?.fechaInicio && (
-            <p className="text-xs text-destructive">{fieldErrors.fechaInicio[0]}</p>
-          )}
-        </div>
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="observaciones">Observaciones / síntesis</Label>
+        <Label htmlFor="fechaInicio">Fecha de inicio</Label>
+        <Input
+          id="fechaInicio"
+          name="fechaInicio"
+          type="date"
+          defaultValue={expediente?.fechaInicio}
+          required
+        />
+        {fieldErrors?.fechaInicio && (
+          <p className="text-xs text-destructive">{fieldErrors.fechaInicio[0]}</p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="nota">Observaciones</Label>
+        <Input
+          id="nota"
+          name="nota"
+          defaultValue={expediente?.nota ?? ""}
+          maxLength={MAX_NOTA_EXPEDIENTE}
+          placeholder="Esperando pericia"
+        />
+        <p className="text-xs text-muted-foreground">
+          Nota corta que se ve en la planilla de expedientes.
+        </p>
+        {fieldErrors?.nota && <p className="text-xs text-destructive">{fieldErrors.nota[0]}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="observaciones">Síntesis</Label>
         <TextareaConTab
           id="observaciones"
           name="observaciones"

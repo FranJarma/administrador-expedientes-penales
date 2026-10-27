@@ -138,6 +138,16 @@ Abrí [http://localhost:3000](http://localhost:3000). Te va a redirigir a
 - **Feria judicial:** en **Feriados** se puede cargar un rango con "Hasta";
   se agrega cada día de lunes a viernes del rango.
 
+## Expedientes: síntesis y observaciones
+
+- **Síntesis** (columna `observaciones`): el texto largo del expediente, con
+  párrafos y Tab.
+- **Observaciones** (columna `nota`): nota corta de una línea que se ve en la
+  planilla de expedientes.
+- El **responsable** ya no se pide en el expediente: al crearlo se completa con
+  el nombre del usuario (lo sigue usando la pantalla de carga de trabajo). En
+  plazos y tareas el responsable se sigue cargando como siempre.
+
 ## Actualizar una base existente sin perder datos
 
 Las migraciones solo **agregan** columnas, tipos y opciones; no borran ni
