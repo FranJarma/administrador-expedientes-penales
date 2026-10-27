@@ -19,20 +19,24 @@ export default async function CalendarioPage() {
 
   const plazosEnriquecidos = enriquecerPlazos(plazosRaw, feriadosASet(feriados));
 
-  const eventosPlazos: EventoCalendario[] = plazosEnriquecidos.map((item) => ({
-    kind: "plazo",
-    id: item.plazo.id,
-    expedienteId: item.expediente.id,
-    numero: item.expediente.numero,
-    tipo: item.plazo.tipo,
-    fecha: item.plazo.fechaVencimiento,
-    estado: item.estado,
-    tieneDetenido: expedientesConDetenidos.has(item.expediente.id),
-    cumplido: item.plazo.cumplido,
-  }));
+  // Los plazos suspendidos no corren: no se muestran en su vencimiento anterior.
+  const eventosPlazos: EventoCalendario[] = plazosEnriquecidos
+    .filter((item) => item.estado !== "suspendido")
+    .map((item) => ({
+      kind: "plazo",
+      id: item.plazo.id,
+      expedienteId: item.expediente.id,
+      numero: item.expediente.numero,
+      tipo: item.plazo.tipo,
+      fecha: item.plazo.fechaVencimiento,
+      estado: item.estado,
+      tieneDetenido: expedientesConDetenidos.has(item.expediente.id),
+      cumplido: item.plazo.cumplido,
+    }));
 
   const eventosAudiencias: EventoCalendario[] = audienciasRaw.map((item) => ({
     kind: "audiencia",
+    clase: item.audiencia.clase,
     id: item.audiencia.id,
     expedienteId: item.expediente.id,
     numero: item.expediente.numero,
@@ -47,7 +51,7 @@ export default async function CalendarioPage() {
       <div>
         <h1 className="text-xl font-semibold">Calendario</h1>
         <p className="text-sm text-muted-foreground">
-          Vencimientos de plazos, prisiones preventivas y audiencias.
+          Vencimientos de plazos, prisiones preventivas, audiencias y citaciones.
         </p>
       </div>
       <CalendarioView eventos={[...eventosPlazos, ...eventosAudiencias]} />

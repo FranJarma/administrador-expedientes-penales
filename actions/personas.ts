@@ -8,7 +8,7 @@ import { db } from "@/lib/db/client";
 import { obtenerExpediente } from "@/lib/db/queries/expedientes";
 import { obtenerPersona } from "@/lib/db/queries/personas";
 import { personas } from "@/lib/db/schema";
-import { personaSchema } from "@/lib/validation/personas";
+import { personaSchema, situacionAGuardar } from "@/lib/validation/personas";
 
 import { actionError, actionSuccess, type ActionResult } from "./types";
 
@@ -28,10 +28,8 @@ export async function crearPersona(input: unknown): Promise<ActionResult<{ id: s
       userId,
       expedienteId: parsed.data.expedienteId,
       nombre: parsed.data.nombre,
-      situacion: parsed.data.situacion,
-      lugarDetencion: parsed.data.situacion === "Detenido"
-        ? (parsed.data.lugarDetencion as (typeof personas.$inferInsert)["lugarDetencion"])
-        : null,
+      rol: parsed.data.rol,
+      ...situacionAGuardar(parsed.data),
       defensor: parsed.data.defensor || null,
       observaciones: parsed.data.observaciones || null,
     })
@@ -61,10 +59,8 @@ export async function actualizarPersona(id: string, input: unknown): Promise<Act
     .update(personas)
     .set({
       nombre: parsed.data.nombre,
-      situacion: parsed.data.situacion,
-      lugarDetencion: parsed.data.situacion === "Detenido"
-        ? (parsed.data.lugarDetencion as (typeof personas.$inferInsert)["lugarDetencion"])
-        : null,
+      rol: parsed.data.rol,
+      ...situacionAGuardar(parsed.data),
       defensor: parsed.data.defensor || null,
       observaciones: parsed.data.observaciones || null,
     })

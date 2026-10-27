@@ -9,7 +9,7 @@ import { PlazosTab } from "@/components/expedientes/tabs/plazos-tab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireUserId } from "@/lib/auth/session";
 import { feriadosASet } from "@/lib/business/dias-habiles";
-import { calcularEstadoSemaforo } from "@/lib/business/semaforo";
+import { semaforoDePlazo } from "@/lib/business/semaforo";
 import { listarAudienciasPorExpediente } from "@/lib/db/queries/audiencias";
 import { obtenerExpediente } from "@/lib/db/queries/expedientes";
 import { listarFeriados } from "@/lib/db/queries/feriados";
@@ -42,11 +42,7 @@ export default async function ExpedienteDetallePage({
   const plazos = plazosRaw.map(({ plazo, persona }) => ({
     plazo,
     persona,
-    estado: calcularEstadoSemaforo({
-      fechaVencimiento: plazo.fechaVencimiento,
-      cumplido: plazo.cumplido,
-      feriados: feriadosSet,
-    }),
+    estado: semaforoDePlazo(plazo, feriadosSet),
   }));
 
   return (
@@ -57,12 +53,12 @@ export default async function ExpedienteDetallePage({
       </div>
 
       <Tabs defaultValue="general">
-        <TabsList>
+        <TabsList className="max-w-full justify-start overflow-x-auto">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="personas">Personas</TabsTrigger>
           <TabsTrigger value="partes">Partes</TabsTrigger>
           <TabsTrigger value="plazos">Plazos</TabsTrigger>
-          <TabsTrigger value="audiencias">Audiencias</TabsTrigger>
+          <TabsTrigger value="audiencias">Audiencias y citaciones</TabsTrigger>
           <TabsTrigger value="checklist">Checklist</TabsTrigger>
         </TabsList>
 

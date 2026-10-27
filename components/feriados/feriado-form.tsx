@@ -17,9 +17,11 @@ export function FeriadoForm({ onSuccess }: { onSuccess: () => void }) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     run(
-      { fecha: fd.get("fecha"), nombre: fd.get("nombre") },
-      () => {
-        toast.success("Feriado agregado");
+      { fecha: fd.get("fecha"), hasta: fd.get("hasta"), nombre: fd.get("nombre") },
+      (data) => {
+        toast.success(
+          data.cantidad === 1 ? "Feriado agregado" : `${data.cantidad} días agregados como feriados`
+        );
         router.refresh();
         onSuccess();
       }
@@ -28,11 +30,22 @@ export function FeriadoForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="fecha">Fecha</Label>
-        <Input id="fecha" name="fecha" type="date" required />
-        {fieldErrors?.fecha && <p className="text-xs text-destructive">{fieldErrors.fecha[0]}</p>}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="fecha">Fecha</Label>
+          <Input id="fecha" name="fecha" type="date" required />
+          {fieldErrors?.fecha && <p className="text-xs text-destructive">{fieldErrors.fecha[0]}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="hasta">Hasta (opcional)</Label>
+          <Input id="hasta" name="hasta" type="date" />
+          {fieldErrors?.hasta && <p className="text-xs text-destructive">{fieldErrors.hasta[0]}</p>}
+        </div>
       </div>
+      <p className="text-xs text-muted-foreground">
+        Para cargar la feria judicial completá &quot;Hasta&quot;: se agrega cada día de lunes a
+        viernes del rango.
+      </p>
       <div className="space-y-1.5">
         <Label htmlFor="nombre">Nombre</Label>
         <Input id="nombre" name="nombre" required />

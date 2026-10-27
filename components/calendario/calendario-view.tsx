@@ -14,13 +14,15 @@ import {
   startOfWeek,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Gavel } from "lucide-react";
+import { ChevronLeft, ChevronRight, Gavel, User } from "lucide-react";
 
+import { ESTILO_CLASE } from "@/components/calendario/estilos-clase";
 import { EventoChip } from "@/components/calendario/plazo-chip";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatFechaSql } from "@/lib/business/dias-habiles";
 import type { EstadoSemaforo } from "@/lib/business/semaforo";
+import type { ClaseAudiencia } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 export type EventoCalendario =
@@ -37,6 +39,7 @@ export type EventoCalendario =
     }
   | {
       kind: "audiencia";
+      clase: ClaseAudiencia;
       id: string;
       expedienteId: string;
       numero: string;
@@ -127,12 +130,26 @@ export function CalendarioView({ eventos }: { eventos: EventoCalendario[] }) {
 
       <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
+          <span className={cn("size-2.5 rounded-full border", ESTILO_CLASE.Audiencia.punto)} />
+          <Gavel className="size-3" />
+          Audiencia
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className={cn("size-2.5 rounded-full border", ESTILO_CLASE["Citación"].punto)} />
+          <User className="size-3" />
+          Citación
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-1.5 rounded-full bg-urgente" />
+          Audiencia o citación con persona detenida
+        </span>
+        <span className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-full border border-urgente/40 bg-urgente/20" />
-          Expediente con persona detenida
+          Plazo de expediente con persona detenida
         </span>
         <span className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-full border border-success/40 bg-success/20" />
-          Sin personas detenidas
+          Plazo sin personas detenidas
         </span>
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-urgente" />
@@ -145,10 +162,6 @@ export function CalendarioView({ eventos }: { eventos: EventoCalendario[] }) {
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-success" />
           Lejano
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Gavel className="size-3" />
-          Audiencia
         </span>
       </div>
 
@@ -203,6 +216,7 @@ export function CalendarioView({ eventos }: { eventos: EventoCalendario[] }) {
                     <EventoChip
                       key={ev.id}
                       kind="audiencia"
+                      clase={ev.clase}
                       expedienteId={ev.expedienteId}
                       numero={ev.numero}
                       tipo={ev.tipo}

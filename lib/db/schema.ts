@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   date,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -13,12 +14,15 @@ import {
 
 import {
   CATEGORIAS_PLAZO,
+  CLASES_AUDIENCIA,
   ESTADOS_EXPEDIENTE,
   ESTADOS_TAREA,
   LUGARES_DETENCION,
   ROLES_PARTE,
+  ROLES_PERSONA,
   ROLES_USUARIO,
   SITUACIONES_PERSONA,
+  TIPOS_EXPEDIENTE,
 } from "@/lib/constants";
 
 export const rolUsuarioEnum = pgEnum("rol_usuario", ROLES_USUARIO);
@@ -27,6 +31,10 @@ export const estadoExpedienteEnum = pgEnum("estado_expediente", ESTADOS_EXPEDIEN
 
 export const situacionPersonaEnum = pgEnum("situacion_persona", SITUACIONES_PERSONA);
 
+export const rolPersonaEnum = pgEnum("rol_persona", ROLES_PERSONA);
+
+export const tipoExpedienteEnum = pgEnum("tipo_expediente", TIPOS_EXPEDIENTE);
+
 export const lugarDetencionEnum = pgEnum("lugar_detencion", LUGARES_DETENCION);
 
 export const rolParteEnum = pgEnum("rol_parte", ROLES_PARTE);
@@ -34,6 +42,8 @@ export const rolParteEnum = pgEnum("rol_parte", ROLES_PARTE);
 export const categoriaPlazoEnum = pgEnum("categoria_plazo", CATEGORIAS_PLAZO);
 
 export const estadoTareaEnum = pgEnum("estado_tarea", ESTADOS_TAREA);
+
+export const claseAudienciaEnum = pgEnum("clase_audiencia", CLASES_AUDIENCIA);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -64,8 +74,12 @@ export const expedientes = pgTable("expedientes", {
     .references(() => users.id, { onDelete: "cascade" }),
   numero: text("numero").notNull(),
   caratula: text("caratula").notNull(),
-  fuero: text("fuero").notNull(),
+  // Ya no se muestra ni se pide (todo es penal). Se conserva la columna para
+  // no perder lo cargado; los expedientes nuevos toman "Penal" por defecto.
+  fuero: text("fuero").notNull().default("Penal"),
   estado: estadoExpedienteEnum("estado").notNull().default("En investigación"),
+  // Opcional: los expedientes cargados antes de agregar este campo quedan sin tipo.
+  tipo: tipoExpedienteEnum("tipo"),
   responsable: text("responsable").notNull(),
   fechaInicio: date("fecha_inicio").notNull(),
   observaciones: text("observaciones"),
@@ -85,6 +99,8 @@ export const personas = pgTable("personas", {
     .notNull()
     .references(() => expedientes.id, { onDelete: "cascade" }),
   nombre: text("nombre").notNull(),
+  // Las personas cargadas antes de agregar este campo quedan como "Imputado".
+  rol: rolPersonaEnum("rol").notNull().default("Imputado"),
   situacion: situacionPersonaEnum("situacion").notNull().default("Libre"),
   lugarDetencion: lugarDetencionEnum("lugar_detencion"),
   defensor: text("defensor"),
@@ -121,6 +137,13 @@ export const plazos = pgTable("plazos", {
   observaciones: text("observaciones"),
   cumplido: boolean("cumplido").notNull().default(false),
   cumplidoEn: timestamp("cumplido_en", { withTimezone: true }),
+  // Ampliaciones: cantidad aplicada y vencimiento previo a la primera.
+  ampliaciones: integer("ampliaciones").notNull().default(0),
+  fechaVencimientoOriginal: date("fecha_vencimiento_original"),
+  // Suspensión: si `suspendidoDesde` tiene fecha, el plazo no corre. Al
+  // reanudarlo se recalcula el vencimiento con los días hábiles que restaban.
+  suspendidoDesde: date("suspendido_desde"),
+  diasHabilesAlSuspender: integer("dias_habiles_al_suspender"),
 });
 
 export const tareas = pgTable("tareas", {
@@ -147,11 +170,17 @@ export const audiencias = pgTable("audiencias", {
   expedienteId: uuid("expediente_id")
     .notNull()
     .references(() => expedientes.id, { onDelete: "cascade" }),
+  // Audiencia o citación. Lo cargado antes de este campo queda como "Audiencia".
+  clase: claseAudienciaEnum("clase").notNull().default("Audiencia"),
   fecha: date("fecha").notNull(),
   hora: time("hora"),
   tipo: text("tipo").notNull(),
   lugar: text("lugar"),
   observaciones: text("observaciones"),
+  // Texto validado contra RESULTADOS_AUDIENCIA / RESULTADOS_CITACION (no es
+  // enum de Postgres para poder sumar opciones sin migración).
+  resultado: text("resultado"),
+  resultadoDetalle: text("resultado_detalle"),
 });
 
 export const feriados = pgTable("feriados", {

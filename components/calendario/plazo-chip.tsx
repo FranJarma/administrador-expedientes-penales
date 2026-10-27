@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Check, Gavel } from "lucide-react";
+import { Check, Gavel, User } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { ESTILO_CLASE } from "@/components/calendario/estilos-clase";
 import type { EstadoSemaforo } from "@/lib/business/semaforo";
+import type { ClaseAudiencia } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 const SEMAFORO_DOT: Record<EstadoSemaforo, string> = {
   vencido: "bg-urgente",
@@ -10,6 +12,7 @@ const SEMAFORO_DOT: Record<EstadoSemaforo, string> = {
   proximo: "bg-warning",
   lejano: "bg-success",
   cumplido: "bg-muted-foreground",
+  suspendido: "bg-muted-foreground",
 };
 
 type EventoChipProps =
@@ -24,6 +27,7 @@ type EventoChipProps =
     }
   | {
       kind: "audiencia";
+      clase: ClaseAudiencia;
       expedienteId: string;
       numero: string;
       tipo: string;
@@ -39,18 +43,26 @@ export function EventoChip(props: EventoChipProps) {
       href={`/expedientes/${expedienteId}`}
       className={cn(
         "flex items-center gap-1.5 rounded border px-1.5 py-1 text-[11px] leading-tight hover:opacity-80",
-        tieneDetenido
-          ? "border-urgente/40 bg-urgente/10 text-urgente"
-          : "border-success/40 bg-success/10 text-success"
+        // Audiencias y citaciones se distinguen por color; los plazos siguen
+        // marcando si el expediente tiene una persona detenida.
+        props.kind === "audiencia"
+          ? ESTILO_CLASE[props.clase].chip
+          : tieneDetenido
+            ? "border-urgente/40 bg-urgente/10 text-urgente"
+            : "border-success/40 bg-success/10 text-success"
       )}
       title={
         props.kind === "audiencia"
-          ? `${numero} — Audiencia: ${tipo}${props.hora ? ` (${props.hora})` : ""}`
+          ? `${numero} — ${props.clase}: ${tipo}${props.hora ? ` (${props.hora})` : ""}${tieneDetenido ? " — con persona detenida" : ""}`
           : `${numero} — ${tipo}`
       }
     >
       {props.kind === "audiencia" ? (
-        <Gavel className="size-3 shrink-0" />
+        props.clase === "Citación" ? (
+          <User className="size-3 shrink-0" />
+        ) : (
+          <Gavel className="size-3 shrink-0" />
+        )
       ) : props.cumplido ? (
         <Check className="size-3 shrink-0" />
       ) : (
@@ -60,6 +72,12 @@ export function EventoChip(props: EventoChipProps) {
         {numero} · {props.kind === "audiencia" && props.hora ? `${props.hora} ` : ""}
         {tipo}
       </span>
+      {props.kind === "audiencia" && tieneDetenido && (
+        <span
+          className="ml-auto size-1.5 shrink-0 rounded-full bg-urgente"
+          aria-label="Con persona detenida"
+        />
+      )}
     </Link>
   );
 }

@@ -7,7 +7,9 @@ import { DeleteButton } from "@/components/forms/delete-button";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { PlazoForm } from "@/components/plazos/plazo-form";
 import { CumplidoToggle } from "@/components/plazos/cumplido-toggle";
-import { SemaforoBadge } from "@/components/plazos/semaforo-badge";
+import { EstadoPlazoBadge } from "@/components/plazos/estado-plazo-badge";
+import { PlazoAcciones } from "@/components/plazos/plazo-acciones";
+import { VencimientoDetalle } from "@/components/plazos/vencimiento-detalle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,13 +87,16 @@ export function PlazosTab({
                 </TableCell>
                 <TableCell>{plazo.tipo}</TableCell>
                 <TableCell>{persona?.nombre ?? "—"}</TableCell>
-                <TableCell>{plazo.fechaVencimiento}</TableCell>
                 <TableCell>
-                  <SemaforoBadge estado={estado} />
+                  <VencimientoDetalle plazo={plazo} />
+                </TableCell>
+                <TableCell>
+                  <EstadoPlazoBadge estado={estado} ampliaciones={plazo.ampliaciones} />
                 </TableCell>
                 <TableCell>{plazo.responsable}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
+                    <PlazoAcciones plazo={plazo} />
                     <CumplidoToggle id={plazo.id} cumplido={plazo.cumplido} />
                     <FormDialog
                       trigger={
