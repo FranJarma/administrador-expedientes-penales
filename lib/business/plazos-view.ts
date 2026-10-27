@@ -1,4 +1,9 @@
-import { contarDiasHabilesEntre, formatFechaSql, parseFechaSql } from "./dias-habiles";
+import {
+  contarDiasHabilesEntre,
+  formatFechaSql,
+  hoyArgentina,
+  parseFechaSql,
+} from "./dias-habiles";
 import {
   calcularEstadoPlazo,
   semaforoDePlazo,
@@ -17,7 +22,7 @@ export type PlazoEnriquecido = PlazoConDetalle & {
 export function enriquecerPlazos(
   plazos: PlazoConDetalle[],
   feriados: Set<string>,
-  hoy: Date = new Date()
+  hoy: Date = hoyArgentina()
 ): PlazoEnriquecido[] {
   const hoyStr = formatFechaSql(hoy);
   return plazos.map((item) => {
@@ -46,6 +51,7 @@ export function contarPorCategoria(
     proximos3: filtrados.filter((p) => p.estado === "urgente").length,
     proximos7: filtrados.filter((p) => p.estado === "proximo").length,
     vencidos: filtrados.filter((p) => p.estado === "vencido").length,
+    suspendidos: filtrados.filter((p) => p.estado === "suspendido").length,
     activos: filtrados.filter((p) => !p.plazo.cumplido).length,
   };
 }

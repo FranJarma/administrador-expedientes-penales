@@ -1,12 +1,13 @@
 "use server";
 
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { requireUserId } from "@/lib/auth/session";
 import {
   ajustarASiguienteHabil,
   diasHabilesRestantesAlSuspender,
+  fechaHoyArgentina,
   feriadosASet,
   formatFechaSql,
   parseFechaSql,
@@ -38,6 +39,13 @@ function revalidarPlazos(expedienteId: string) {
   revalidatePath("/carga-de-trabajo");
   revalidatePath("/notificaciones");
 }
+
+/**
+ * Ampliar y suspender se aplican solo a plazos procesales: los de prisión
+ * preventiva pueden computarse distinto (días corridos) y no se tocan.
+ */
+const SOLO_PROCESALES =
+  "Ampliar y suspender solo se aplica a plazos procesales, no a prisión preventiva.";
 
 async function ajustarFechaVencimiento(userId: string, fecha: string) {
   const feriados = await listarFeriados(userId);
@@ -120,6 +128,24 @@ export async function actualizarPlazo(
     parsed.data.fechaVencimiento
   );
 
+  // Si está suspendido y se corrige el vencimiento, se recalculan los días
+  // hábiles que restaban a la fecha de suspensión con el vencimiento nuevo.
+  let diasHabilesAlSuspender = existente.diasHabilesAlSuspender;
+  if (existente.suspendidoDesde && fechaAjustada !== existente.fechaVencimiento) {
+    const feriados = feriadosASet(await listarFeriados(userId));
+    diasHabilesAlSuspender = diasHabilesRestantesAlSuspender(
+      parseFechaSql(existente.suspendidoDesde),
+      parseFechaSql(fechaAjustada),
+      feriados
+    );
+    if (diasHabilesAlSuspender <= 0) {
+      return actionError(
+        `El plazo está suspendido desde el ${existente.suspendidoDesde}: el vencimiento no puede ser anterior a esa fecha.`,
+        { fechaVencimiento: ["Debe ser igual o posterior a la fecha de suspensión"] }
+      );
+    }
+  }
+
   await db
     .update(plazos)
     .set({
@@ -131,6 +157,7 @@ export async function actualizarPlazo(
       fechaVencimiento: fechaAjustada,
       responsable: parsed.data.responsable,
       observaciones: parsed.data.observaciones || null,
+      diasHabilesAlSuspender,
     })
     .where(and(eq(plazos.id, id), eq(plazos.userId, userId)));
 
@@ -189,6 +216,7 @@ export async function ampliarPlazo(
 
   const existente = await obtenerPlazo(userId, parsed.data.id);
   if (!existente) return actionError("Plazo no encontrado");
+  if (existente.categoria !== "procesal") return actionError(SOLO_PROCESALES);
   if (existente.cumplido) return actionError("El plazo ya está cumplido");
   if (existente.suspendidoDesde) {
     return actionError("El plazo está suspendido: reanudalo antes de ampliarlo");
@@ -210,8 +238,11 @@ export async function ampliarPlazo(
       and(
         eq(plazos.id, existente.id),
         eq(plazos.userId, userId),
-        // Evita ampliar dos veces si se envía la acción duplicada.
+        // Si el plazo cambió entre la lectura y la escritura (doble clic,
+        // otra pestaña), no se amplía sobre datos viejos.
         eq(plazos.ampliaciones, existente.ampliaciones),
+        eq(plazos.fechaVencimiento, existente.fechaVencimiento),
+        eq(plazos.cumplido, false),
         isNull(plazos.suspendidoDesde)
       )
     )
@@ -239,8 +270,20 @@ export async function suspenderPlazo(
 
   const existente = await obtenerPlazo(userId, parsed.data.id);
   if (!existente) return actionError("Plazo no encontrado");
+  if (existente.categoria !== "procesal") return actionError(SOLO_PROCESALES);
   if (existente.cumplido) return actionError("El plazo ya está cumplido");
   if (existente.suspendidoDesde) return actionError("El plazo ya está suspendido");
+  if (parsed.data.fecha < existente.fechaInicio) {
+    return actionError(
+      `La suspensión no puede ser anterior al inicio del plazo (${existente.fechaInicio}).`,
+      { fecha: ["Debe ser igual o posterior a la fecha de inicio"] }
+    );
+  }
+  if (parsed.data.fecha > fechaHoyArgentina()) {
+    return actionError("No se puede suspender con una fecha futura: el plazo sigue corriendo.", {
+      fecha: ["Usá la fecha de hoy o una anterior"],
+    });
+  }
 
   const feriados = feriadosASet(await listarFeriados(userId));
   const restantes = diasHabilesRestantesAlSuspender(
@@ -261,11 +304,15 @@ export async function suspenderPlazo(
       and(
         eq(plazos.id, existente.id),
         eq(plazos.userId, userId),
+        eq(plazos.fechaVencimiento, existente.fechaVencimiento),
+        eq(plazos.cumplido, false),
         isNull(plazos.suspendidoDesde)
       )
     )
     .returning({ id: plazos.id });
-  if (actualizados.length === 0) return actionError("El plazo ya está suspendido");
+  if (actualizados.length === 0) {
+    return actionError("El plazo cambió mientras lo suspendías. Recargá la página.");
+  }
 
   revalidarPlazos(existente.expedienteId);
   return actionSuccess({ diasHabilesRestantes: restantes });
@@ -317,11 +364,14 @@ export async function reanudarPlazo(
       and(
         eq(plazos.id, existente.id),
         eq(plazos.userId, userId),
-        isNotNull(plazos.suspendidoDesde)
+        eq(plazos.suspendidoDesde, existente.suspendidoDesde),
+        eq(plazos.diasHabilesAlSuspender, existente.diasHabilesAlSuspender)
       )
     )
     .returning({ id: plazos.id });
-  if (actualizados.length === 0) return actionError("El plazo no está suspendido");
+  if (actualizados.length === 0) {
+    return actionError("El plazo cambió mientras lo reanudabas. Recargá la página.");
+  }
 
   revalidarPlazos(existente.expedienteId);
   return actionSuccess({ fechaVencimiento: nuevoVencimiento });

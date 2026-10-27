@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const fechaSql = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida");
+const fechaSql = z.iso.date({ error: "Fecha inválida" });
 
 /** Máximo de días que se pueden cargar de una vez (alcanza para una feria). */
 export const MAX_DIAS_RANGO_FERIADOS = 62;

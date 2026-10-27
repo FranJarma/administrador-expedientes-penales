@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { EstadoPlazoBadge } from "@/components/plazos/estado-plazo-badge";
+import { VencimientoDetalle } from "@/components/plazos/vencimiento-detalle";
 import { NotificacionesForm } from "@/components/notificaciones/notificaciones-form";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -36,6 +37,7 @@ export default async function NotificacionesPage() {
     .filter(
       (p) =>
         p.estado === "vencido" ||
+        p.estado === "suspendido" ||
         (p.diasHabilesRestantes !== null && anticipaciones[String(p.diasHabilesRestantes)])
     )
     .sort((a, b) => (a.plazo.fechaVencimiento < b.plazo.fechaVencimiento ? -1 : 1));
@@ -86,7 +88,9 @@ export default async function NotificacionesPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>{item.plazo.tipo}</TableCell>
-                <TableCell>{item.plazo.fechaVencimiento}</TableCell>
+                <TableCell>
+                  <VencimientoDetalle plazo={item.plazo} />
+                </TableCell>
                 <TableCell>
                   <EstadoPlazoBadge estado={item.estado} ampliaciones={item.plazo.ampliaciones} />
                 </TableCell>

@@ -39,7 +39,9 @@ export async function crearFeriado(
   const fechas = fechasParaCargarFeriados(desde, hasta, existentes);
 
   if (fechas.length === 0) {
-    return actionError("Esas fechas ya estaban cargadas como feriados");
+    return actionError(
+      "No hay días nuevos para cargar: ya estaban cargados o caen en fin de semana"
+    );
   }
 
   await db

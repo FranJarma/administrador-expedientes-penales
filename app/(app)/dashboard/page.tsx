@@ -52,7 +52,7 @@ export default async function DashboardPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Plazos procesales</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
           <StatCard
             label="Vencen hoy"
             value={procesales.vencenHoy}
@@ -72,6 +72,11 @@ export default async function DashboardPage() {
             label="Vencidos"
             value={procesales.vencidos}
             href="/plazos?categoria=procesal&estado=vencido"
+          />
+          <StatCard
+            label="Suspendidos"
+            value={procesales.suspendidos}
+            href="/plazos?categoria=procesal&estado=suspendido"
           />
           <StatCard label="Expedientes activos" value={expedientesActivos} href="/expedientes" />
           <StatCard

@@ -131,6 +131,8 @@ Abrí [http://localhost:3000](http://localhost:3000). Te va a redirigir a
 - **Estados:** corriendo, ampliado, suspendido, vencido y cumplido. El color
   sigue el semáforo de urgencia. Los plazos suspendidos no generan alertas ni
   aparecen en el calendario.
+- Ampliar y suspender se ofrecen solo para plazos **procesales**; los de
+  prisión preventiva no se tocan.
 - **Feria judicial:** en **Feriados** se puede cargar un rango con "Hasta";
   se agrega cada día de lunes a viernes del rango.
 
@@ -141,8 +143,10 @@ renombran nada. El código anterior sigue funcionando con la base migrada, así
 que el orden seguro es:
 
 1. Backup de la base (en Neon: crear un branch o restore point).
-2. `npm run db:migrate` contra la `DATABASE_URL` de producción.
-3. Recién después, publicar el código nuevo (merge a `main`).
+2. Verificar que `drizzle.__drizzle_migrations` tenga las migraciones
+   anteriores aplicadas (2 filas antes de esta actualización).
+3. `npm run db:migrate` contra la `DATABASE_URL` de producción.
+4. Recién después, publicar el código nuevo (merge a `main`).
 
 Si se publica el código antes de migrar, la app falla al leer columnas que
 todavía no existen (no se pierden datos, pero queda caída hasta migrar).

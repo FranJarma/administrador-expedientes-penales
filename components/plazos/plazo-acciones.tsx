@@ -45,9 +45,12 @@ export function PlazoAcciones({ plazo }: { plazo: Plazo }) {
     );
   }
 
+  // Ampliar y suspender son solo para plazos procesales.
+  if (plazo.categoria !== "procesal") return null;
+
   return (
     <>
-      <AmpliarButton plazoId={plazo.id} />
+      <AmpliarButton plazoId={plazo.id} fechaVencimiento={plazo.fechaVencimiento} />
       <FormDialog
         trigger={
           <Button variant="outline" size="sm" title="Suspender plazo">
@@ -64,18 +67,22 @@ export function PlazoAcciones({ plazo }: { plazo: Plazo }) {
   );
 }
 
-function AmpliarButton({ plazoId }: { plazoId: string }) {
+function AmpliarButton({
+  plazoId,
+  fechaVencimiento,
+}: {
+  plazoId: string;
+  fechaVencimiento: string;
+}) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   function handleClick() {
-    if (
-      !window.confirm(
-        `¿Ampliar este plazo ${DIAS_AMPLIACION_PLAZO} días hábiles a partir del vencimiento actual?`
-      )
-    ) {
-      return;
-    }
+    const vencido = fechaVencimiento < hoyLocal();
+    const pregunta = vencido
+      ? `Este plazo ya venció el ${fechaVencimiento}. ¿Ampliarlo igual ${DIAS_AMPLIACION_PLAZO} días hábiles desde esa fecha?`
+      : `¿Ampliar este plazo ${DIAS_AMPLIACION_PLAZO} días hábiles a partir del vencimiento actual?`;
+    if (!window.confirm(pregunta)) return;
     startTransition(async () => {
       const result = await ampliarPlazo({ id: plazoId });
       if (result.success) {
@@ -145,7 +152,14 @@ function FechaForm({
         <Label htmlFor="fecha">
           {modo === "suspender" ? "Fecha de suspensión" : "Fecha de reanudación"}
         </Label>
-        <Input id="fecha" name="fecha" type="date" defaultValue={hoyLocal()} required />
+        <Input
+          id="fecha"
+          name="fecha"
+          type="date"
+          defaultValue={hoyLocal()}
+          max={modo === "suspender" ? hoyLocal() : undefined}
+          required
+        />
         {fieldErrors?.fecha && <p className="text-xs text-destructive">{fieldErrors.fecha[0]}</p>}
       </div>
       <Button type="submit" className="w-full" disabled={isPending}>

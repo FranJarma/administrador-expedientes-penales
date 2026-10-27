@@ -26,9 +26,7 @@ export const marcarCumplidoSchema = z.object({
   cumplido: z.boolean(),
 });
 
-const fechaSql = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida");
+const fechaSql = z.iso.date({ error: "Fecha inválida" });
 
 export const ampliarPlazoSchema = z.object({
   id: z.string().uuid(),

@@ -8,6 +8,24 @@ export function parseFechaSql(fecha: string): Date {
   return startOfDay(new Date(`${fecha}T00:00:00`));
 }
 
+/** Zona horaria de los juzgados: el servidor (Vercel) corre en UTC. */
+export const ZONA_HORARIA = "America/Argentina/Salta";
+
+/** Fecha de hoy en Argentina como "YYYY-MM-DD", sin importar la zona del servidor. */
+export function fechaHoyArgentina(ahora: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: ZONA_HORARIA,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(ahora);
+}
+
+/** Hoy en Argentina, a medianoche, en el mismo formato que `parseFechaSql`. */
+export function hoyArgentina(ahora: Date = new Date()): Date {
+  return parseFechaSql(fechaHoyArgentina(ahora));
+}
+
 export function formatFechaSql(fecha: Date): string {
   return format(fecha, "yyyy-MM-dd");
 }

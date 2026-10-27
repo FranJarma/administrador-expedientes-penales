@@ -1,6 +1,6 @@
 import { isBefore, startOfDay } from "date-fns";
 
-import { contarDiasHabilesEntre, parseFechaSql } from "./dias-habiles";
+import { contarDiasHabilesEntre, hoyArgentina, parseFechaSql } from "./dias-habiles";
 
 /**
  * Urgencia del plazo (semáforo). Se usa para colores, filtros, dashboard y
@@ -26,7 +26,7 @@ export function calcularEstadoSemaforo(params: {
   if (cumplido) return "cumplido";
   if (suspendido) return "suspendido";
 
-  const hoy = startOfDay(params.hoy ?? new Date());
+  const hoy = startOfDay(params.hoy ?? hoyArgentina());
   const vencimiento = parseFechaSql(fechaVencimiento);
 
   if (isBefore(vencimiento, hoy)) return "vencido";
