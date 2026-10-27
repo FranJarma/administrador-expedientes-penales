@@ -63,7 +63,6 @@ export function PlazosTab({
             <TableRow>
               <TableHead>Categoría</TableHead>
               <TableHead>Tipo</TableHead>
-              <TableHead>Persona</TableHead>
               <TableHead>Vencimiento</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Responsable</TableHead>
@@ -73,12 +72,12 @@ export function PlazosTab({
           <TableBody>
             {plazos.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Todavía no hay plazos cargados.
                 </TableCell>
               </TableRow>
             )}
-            {plazos.map(({ plazo, persona, estado }) => (
+            {plazos.map(({ plazo, estado }) => (
               <TableRow key={plazo.id}>
                 <TableCell>
                   <Badge variant={plazo.categoria === "prision_preventiva" ? "urgente" : "outline"}>
@@ -86,7 +85,6 @@ export function PlazosTab({
                   </Badge>
                 </TableCell>
                 <TableCell>{plazo.tipo}</TableCell>
-                <TableCell>{persona?.nombre ?? "—"}</TableCell>
                 <TableCell>
                   <VencimientoDetalle plazo={plazo} />
                 </TableCell>

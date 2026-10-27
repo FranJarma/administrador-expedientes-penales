@@ -128,8 +128,8 @@ Abrí [http://localhost:3000](http://localhost:3000). Te va a redirigir a
   restaban (contando el día de la suspensión). Al reanudar, el nuevo
   vencimiento es el día hábil número N contando desde la fecha de
   reanudación. Los días entre ambas fechas no se computan.
-- **Estados:** corriendo, ampliado, suspendido, vencido y cumplido. El color
-  sigue el semáforo de urgencia. Los plazos suspendidos no generan alertas ni
+- **Estados:** urgente, próximo, lejano, vencido, cumplido y suspendido (con
+  sus colores). Si el plazo se amplió, se agrega la etiqueta "Ampliado". Los plazos suspendidos no generan alertas ni
   aparecen en el calendario.
 - Ampliar y suspender se ofrecen solo para plazos **procesales**.
 - **Prisión preventiva:** corre en días corridos y su vencimiento se carga a
@@ -137,6 +137,16 @@ Abrí [http://localhost:3000](http://localhost:3000). Te va a redirigir a
   procesales sí se corren si vencen en fin de semana o feriado).
 - **Feria judicial:** en **Feriados** se puede cargar un rango con "Hasta";
   se agrega cada día de lunes a viernes del rango.
+
+## Expedientes: síntesis y observaciones
+
+- **Síntesis** (columna `observaciones`): el texto largo del expediente, con
+  párrafos y Tab.
+- **Observaciones** (columna `nota`): nota corta de una línea que se ve en la
+  planilla de expedientes.
+- El **responsable** ya no se pide en el expediente: al crearlo se completa con
+  el nombre del usuario (lo sigue usando la pantalla de carga de trabajo). En
+  plazos y tareas el responsable se sigue cargando como siempre.
 
 ## Actualizar una base existente sin perder datos
 

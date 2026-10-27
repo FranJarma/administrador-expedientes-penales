@@ -80,9 +80,14 @@ export const expedientes = pgTable("expedientes", {
   estado: estadoExpedienteEnum("estado").notNull().default("En investigación"),
   // Opcional: los expedientes cargados antes de agregar este campo quedan sin tipo.
   tipo: tipoExpedienteEnum("tipo"),
+  // Ya no se muestra en el expediente: se completa con el nombre del usuario
+  // al crearlo (lo sigue usando la pantalla de carga de trabajo).
   responsable: text("responsable").notNull(),
   fechaInicio: date("fecha_inicio").notNull(),
+  // Se muestra como "Síntesis" (texto largo del expediente).
   observaciones: text("observaciones"),
+  // Se muestra como "Observaciones": nota corta visible en la planilla.
+  nota: text("nota"),
   creadoEn: timestamp("creado_en", { withTimezone: true }).notNull().defaultNow(),
   actualizadoEn: timestamp("actualizado_en", { withTimezone: true })
     .notNull()

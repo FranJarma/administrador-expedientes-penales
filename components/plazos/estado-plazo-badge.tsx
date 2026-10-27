@@ -2,16 +2,14 @@ import { Pause } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
-  calcularEstadoPlazo,
-  ESTADO_PLAZO_LABEL,
   ESTADO_SEMAFORO_BADGE_VARIANT,
+  ESTADO_SEMAFORO_LABEL,
   type EstadoSemaforo,
 } from "@/lib/business/semaforo";
 
 /**
- * Muestra el estado del plazo (corriendo, ampliado, suspendido, vencido,
- * cumplido). El color sigue el semáforo, así un plazo corriendo o ampliado
- * se ve en rojo/amarillo/verde según lo cerca que esté de vencer.
+ * Estado del plazo: urgente, próximo, lejano, vencido, cumplido o suspendido.
+ * Si el plazo se amplió, se agrega una etiqueta "Ampliado" al lado.
  */
 export function EstadoPlazoBadge({
   estado,
@@ -20,12 +18,17 @@ export function EstadoPlazoBadge({
   estado: EstadoSemaforo;
   ampliaciones: number;
 }) {
-  const estadoPlazo = calcularEstadoPlazo(estado, ampliaciones);
   return (
-    <Badge variant={ESTADO_SEMAFORO_BADGE_VARIANT[estado]}>
-      {estadoPlazo === "suspendido" && <Pause />}
-      {ESTADO_PLAZO_LABEL[estadoPlazo]}
-      {estadoPlazo === "ampliado" && ampliaciones > 1 && ` ×${ampliaciones}`}
-    </Badge>
+    <span className="inline-flex flex-wrap items-center gap-1">
+      <Badge variant={ESTADO_SEMAFORO_BADGE_VARIANT[estado]}>
+        {estado === "suspendido" && <Pause />}
+        {ESTADO_SEMAFORO_LABEL[estado]}
+      </Badge>
+      {ampliaciones > 0 && (
+        <Badge variant="outline">
+          Ampliado{ampliaciones > 1 ? ` ×${ampliaciones}` : ""}
+        </Badge>
+      )}
+    </span>
   );
 }

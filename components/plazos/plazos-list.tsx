@@ -32,7 +32,6 @@ import type { PlazoEnriquecido } from "@/lib/business/plazos-view";
 const ESTADOS_FILTRO = [
   { value: "todos", label: "Todos los estados" },
   { value: "activos", label: "Activos (no cumplidos)" },
-  { value: "corriendo", label: "Corriendo" },
   { value: "ampliado", label: "Ampliados" },
   { value: "suspendido", label: "Suspendidos" },
   { value: "vencenHoy", label: "Vencen hoy" },
@@ -64,7 +63,7 @@ export function PlazosList({
         estado === "todos" ||
         (estado === "vencenHoy" && item.vencimientoHoy) ||
         (estado === "activos" && !item.plazo.cumplido) ||
-        ((estado === "corriendo" || estado === "ampliado") && item.estadoPlazo === estado) ||
+        (estado === "ampliado" && item.plazo.ampliaciones > 0 && !item.plazo.cumplido) ||
         item.estado === estado;
       const coincideTexto =
         !texto ||
@@ -117,7 +116,6 @@ export function PlazosList({
               <TableHead>Expediente</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Tipo</TableHead>
-              <TableHead>Persona</TableHead>
               <TableHead>Vencimiento</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Responsable</TableHead>
@@ -127,7 +125,7 @@ export function PlazosList({
           <TableBody>
             {filtrados.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
                   No se encontraron plazos.
                 </TableCell>
               </TableRow>
@@ -148,7 +146,6 @@ export function PlazosList({
                   </Badge>
                 </TableCell>
                 <TableCell>{item.plazo.tipo}</TableCell>
-                <TableCell>{item.persona?.nombre ?? "—"}</TableCell>
                 <TableCell>
                   <VencimientoDetalle plazo={item.plazo} />
                 </TableCell>

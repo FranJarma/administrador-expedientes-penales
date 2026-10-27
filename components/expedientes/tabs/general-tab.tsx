@@ -40,13 +40,13 @@ export function GeneralTab({ expediente }: { expediente: Expediente }) {
         <Campo label="Número" value={expediente.numero} />
         <Campo label="Estado" value={<Badge variant="outline">{expediente.estado}</Badge>} />
         <Campo label="Tipo" value={expediente.tipo} />
-        <Campo label="Responsable" value={expediente.responsable} />
         <Campo label="Fecha de inicio" value={expediente.fechaInicio} />
       </div>
 
       <Campo label="Carátula" value={expediente.caratula} />
+      <Campo label="Observaciones" value={expediente.nota} />
       <div>
-        <p className="text-xs text-muted-foreground">Observaciones</p>
+        <p className="text-xs text-muted-foreground">Síntesis</p>
         <p className="text-sm whitespace-pre-wrap [tab-size:4]">
           {expediente.observaciones || "—"}
         </p>

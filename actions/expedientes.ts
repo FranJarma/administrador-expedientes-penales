@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { requireUserId } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
 import { obtenerExpediente } from "@/lib/db/queries/expedientes";
+import { obtenerUsuarioPorId } from "@/lib/db/queries/usuarios";
 import { expedientes } from "@/lib/db/schema";
 import { expedienteSchema } from "@/lib/validation/expedientes";
 
@@ -20,6 +21,10 @@ export async function crearExpediente(
     return actionError("Datos inválidos", parsed.error.flatten().fieldErrors);
   }
 
+  // El responsable ya no se pide: es siempre quien usa el sistema.
+  const usuario = await obtenerUsuarioPorId(userId);
+  const responsable = usuario?.nombre ?? "";
+
   const [expediente] = await db
     .insert(expedientes)
     .values({
@@ -28,9 +33,10 @@ export async function crearExpediente(
       caratula: parsed.data.caratula,
       estado: parsed.data.estado,
       tipo: parsed.data.tipo || null,
-      responsable: parsed.data.responsable,
+      responsable,
       fechaInicio: parsed.data.fechaInicio,
       observaciones: parsed.data.observaciones || null,
+      nota: parsed.data.nota?.trim() || null,
     })
     .returning({ id: expedientes.id });
 
@@ -61,9 +67,9 @@ export async function actualizarExpediente(
       caratula: parsed.data.caratula,
       estado: parsed.data.estado,
       tipo: parsed.data.tipo || null,
-      responsable: parsed.data.responsable,
       fechaInicio: parsed.data.fechaInicio,
       observaciones: parsed.data.observaciones || null,
+      nota: parsed.data.nota?.trim() || null,
     })
     .where(and(eq(expedientes.id, id), eq(expedientes.userId, userId)));
 

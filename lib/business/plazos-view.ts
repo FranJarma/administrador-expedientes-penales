@@ -4,17 +4,11 @@ import {
   hoyArgentina,
   parseFechaSql,
 } from "./dias-habiles";
-import {
-  calcularEstadoPlazo,
-  semaforoDePlazo,
-  type EstadoPlazo,
-  type EstadoSemaforo,
-} from "./semaforo";
+import { semaforoDePlazo, type EstadoSemaforo } from "./semaforo";
 import type { PlazoConDetalle } from "@/lib/db/queries/plazos";
 
 export type PlazoEnriquecido = PlazoConDetalle & {
   estado: EstadoSemaforo;
-  estadoPlazo: EstadoPlazo;
   vencimientoHoy: boolean;
   diasHabilesRestantes: number | null;
 };
@@ -34,7 +28,6 @@ export function enriquecerPlazos(
     return {
       ...item,
       estado,
-      estadoPlazo: calcularEstadoPlazo(estado, item.plazo.ampliaciones),
       vencimientoHoy: corre && item.plazo.fechaVencimiento === hoyStr,
       diasHabilesRestantes,
     };
