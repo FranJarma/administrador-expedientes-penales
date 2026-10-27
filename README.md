@@ -128,8 +128,8 @@ Abrí [http://localhost:3000](http://localhost:3000). Te va a redirigir a
   restaban (contando el día de la suspensión). Al reanudar, el nuevo
   vencimiento es el día hábil número N contando desde la fecha de
   reanudación. Los días entre ambas fechas no se computan.
-- **Estados:** corriendo, ampliado, suspendido, vencido y cumplido. El color
-  sigue el semáforo de urgencia. Los plazos suspendidos no generan alertas ni
+- **Estados:** urgente, próximo, lejano, vencido, cumplido y suspendido (con
+  sus colores). Si el plazo se amplió, se agrega la etiqueta "Ampliado". Los plazos suspendidos no generan alertas ni
   aparecen en el calendario.
 - Ampliar y suspender se ofrecen solo para plazos **procesales**.
 - **Prisión preventiva:** corre en días corridos y su vencimiento se carga a

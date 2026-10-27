@@ -76,27 +76,3 @@ export const ESTADO_SEMAFORO_BADGE_VARIANT: Record<
   cumplido: "secondary",
   suspendido: "outline",
 };
-
-/**
- * Estado del plazo tal como se muestra en las listas: corriendo, ampliado,
- * suspendido, vencido o cumplido.
- */
-export type EstadoPlazo = "corriendo" | "ampliado" | "suspendido" | "vencido" | "cumplido";
-
-export function calcularEstadoPlazo(
-  semaforo: EstadoSemaforo,
-  ampliaciones: number
-): EstadoPlazo {
-  if (semaforo === "cumplido") return "cumplido";
-  if (semaforo === "suspendido") return "suspendido";
-  if (semaforo === "vencido") return "vencido";
-  return ampliaciones > 0 ? "ampliado" : "corriendo";
-}
-
-export const ESTADO_PLAZO_LABEL: Record<EstadoPlazo, string> = {
-  corriendo: "Corriendo",
-  ampliado: "Ampliado",
-  suspendido: "Suspendido",
-  vencido: "Vencido",
-  cumplido: "Cumplido",
-};

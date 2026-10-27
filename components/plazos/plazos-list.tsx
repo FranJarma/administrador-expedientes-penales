@@ -32,7 +32,6 @@ import type { PlazoEnriquecido } from "@/lib/business/plazos-view";
 const ESTADOS_FILTRO = [
   { value: "todos", label: "Todos los estados" },
   { value: "activos", label: "Activos (no cumplidos)" },
-  { value: "corriendo", label: "Corriendo" },
   { value: "ampliado", label: "Ampliados" },
   { value: "suspendido", label: "Suspendidos" },
   { value: "vencenHoy", label: "Vencen hoy" },
@@ -64,7 +63,7 @@ export function PlazosList({
         estado === "todos" ||
         (estado === "vencenHoy" && item.vencimientoHoy) ||
         (estado === "activos" && !item.plazo.cumplido) ||
-        ((estado === "corriendo" || estado === "ampliado") && item.estadoPlazo === estado) ||
+        (estado === "ampliado" && item.plazo.ampliaciones > 0 && !item.plazo.cumplido) ||
         item.estado === estado;
       const coincideTexto =
         !texto ||
