@@ -131,8 +131,10 @@ Abrí [http://localhost:3000](http://localhost:3000). Te va a redirigir a
 - **Estados:** corriendo, ampliado, suspendido, vencido y cumplido. El color
   sigue el semáforo de urgencia. Los plazos suspendidos no generan alertas ni
   aparecen en el calendario.
-- Ampliar y suspender se ofrecen solo para plazos **procesales**; los de
-  prisión preventiva no se tocan.
+- Ampliar y suspender se ofrecen solo para plazos **procesales**.
+- **Prisión preventiva:** corre en días corridos y su vencimiento se carga a
+  mano; se guarda tal cual, sin correrlo al siguiente día hábil (los
+  procesales sí se corren si vencen en fin de semana o feriado).
 - **Feria judicial:** en **Feriados** se puede cargar un rango con "Hasta";
   se agrega cada día de lunes a viernes del rango.
 

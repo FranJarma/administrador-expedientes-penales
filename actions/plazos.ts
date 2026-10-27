@@ -41,13 +41,25 @@ function revalidarPlazos(expedienteId: string) {
 }
 
 /**
- * Ampliar y suspender se aplican solo a plazos procesales: los de prisión
- * preventiva pueden computarse distinto (días corridos) y no se tocan.
+ * Ampliar y suspender se aplican solo a plazos procesales: la prisión
+ * preventiva se computa en días corridos y su vencimiento se carga a mano.
  */
 const SOLO_PROCESALES =
   "Ampliar y suspender solo se aplica a plazos procesales, no a prisión preventiva.";
 
-async function ajustarFechaVencimiento(userId: string, fecha: string) {
+/**
+ * Los plazos procesales que vencen en fin de semana o feriado se corren al
+ * siguiente día hábil. La prisión preventiva corre en días corridos: su
+ * vencimiento se guarda tal cual se cargó.
+ */
+async function ajustarFechaVencimiento(
+  userId: string,
+  fecha: string,
+  categoria: (typeof plazos.$inferSelect)["categoria"]
+) {
+  if (categoria === "prision_preventiva") {
+    return { fechaAjustada: fecha, seAjusto: false };
+  }
   const feriados = await listarFeriados(userId);
   const feriadosSet = feriadosASet(feriados);
   const ajustada = ajustarASiguienteHabil(parseFechaSql(fecha), feriadosSet);
@@ -76,7 +88,8 @@ export async function crearPlazo(
 
   const { fechaAjustada, seAjusto } = await ajustarFechaVencimiento(
     userId,
-    parsed.data.fechaVencimiento
+    parsed.data.fechaVencimiento,
+    parsed.data.categoria
   );
 
   const [plazo] = await db
@@ -125,7 +138,8 @@ export async function actualizarPlazo(
 
   const { fechaAjustada, seAjusto } = await ajustarFechaVencimiento(
     userId,
-    parsed.data.fechaVencimiento
+    parsed.data.fechaVencimiento,
+    parsed.data.categoria
   );
 
   // Si está suspendido y se corrige el vencimiento, se recalculan los días
